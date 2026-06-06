@@ -102,11 +102,8 @@ Students can access their academic information and enroll in courses.
 ---
 
  🚀 Live Demo
-
-After deploying to GitHub Pages:
-
 ```text
-https://YOUR_USERNAME.github.io/springfield-academy/
+https://lucky-beignet-b364b3.netlify.app/index.html
 ```
 
 ---
