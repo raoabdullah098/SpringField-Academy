@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Springfield Academy - Login</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        .login-container { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .login-card { background: white; border-radius: 20px; padding: 40px; width: 100%; max-width: 450px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .logo { text-align: center; margin-bottom: 30px; }
+        .logo-icon { font-size: 3rem; margin-bottom: 10px; }
+        .logo h1 { color: #667eea; margin-bottom: 5px; font-size: 1.5rem; }
+        .logo p { color: #666; font-size: 0.85rem; }
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; }
+        .input-group input { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 16px; }
+        .input-group input:focus { outline: none; border-color: #667eea; }
+        .btn-login { width: 100%; padding: 12px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; }
+        .error-msg { color: #ef4444; margin-top: 15px; text-align: center; }
+        .demo-info { margin-top: 30px; padding: 15px; background: #f7fafc; border-radius: 8px; font-size: 12px; }
+        .demo-info p { margin: 3px 0; }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="logo">
+                <div class="logo-icon">🏫</div>
+                <h1>Springfield Academy</h1>
+                <p>School Management System</p>
+            </div>
+            
+            <form id="loginForm">
+                <div class="input-group">
+                    <label for="username">Student ID or Teacher ID</label>
+                    <input type="text" id="username" placeholder="Enter STU001 or TCH001" required autocomplete="off">
+                </div>
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Enter password" required>
+                </div>
+                <button type="submit" class="btn-login" id="loginBtn">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </button>
+            </form>
+            
+            <div id="errorMsg" class="error-msg"></div>
+            
+            <div class="demo-info">
+                <p><strong>Demo Credentials:</strong></p>
+                <p>👑 Admin: admin@springfield.com / admin123</p>
+                <p>👩‍🏫 Teacher: TCH001 / teacher123</p>
+                <p>👨‍🎓 Student: STU001 / student123</p>
+            </div>
+        </div>
+    </div>
+    
+    <script type="module">
+        import { auth, db, signInWithEmailAndPassword, collection, query, where, getDocs } from './firebase-config.js';
+        
+        const loginBtn = document.getElementById('loginBtn');
+        const errorMsg = document.getElementById('errorMsg');
+        
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value.trim().toUpperCase();
+            const password = document.getElementById('password').value;
+            
+            errorMsg.textContent = '';
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+            
+            try {
+                // ADMIN LOGIN (with email)
+                if (username.includes('@')) {
+                    const userCredential = await signInWithEmailAndPassword(auth, username, password);
+                    localStorage.setItem('currentUser', JSON.stringify({
+                        email: username,
+                        role: 'admin',
+                        name: 'Administrator'
+                    }));
+                    window.location.href = 'admin.html';
+                    return;
+                }
+                
+                // TEACHER LOGIN (with Teacher ID like TCH001)
+                if (username.startsWith('TCH')) {
+                    const teachersRef = collection(db, 'teachers');
+                    const q = query(teachersRef, where('teacherId', '==', username));
+                    const snapshot = await getDocs(q);
+                    
+                    if (!snapshot.empty) {
+                        const teacherData = snapshot.docs[0].data();
+                        if (teacherData.password === password) {
+                            localStorage.setItem('currentUser', JSON.stringify({
+                                teacherId: teacherData.teacherId,
+                                name: teacherData.name,
+                                role: 'teacher',
+                                email: teacherData.email
+                            }));
+                            window.location.href = 'teacher.html';
+                            return;
+                        } else {
+                            errorMsg.textContent = 'Invalid password for Teacher ID';
+                            loginBtn.disabled = false;
+                            loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+                            return;
+                        }
+                    } else {
+                        errorMsg.textContent = 'Teacher ID not found';
+                        loginBtn.disabled = false;
+                        loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+                        return;
+                    }
+                }
+                
+                // STUDENT LOGIN (with Student ID like STU001)
+                if (username.startsWith('STU')) {
+                    const studentsRef = collection(db, 'students');
+                    const q = query(studentsRef, where('studentId', '==', username));
+                    const snapshot = await getDocs(q);
+                    
+                    if (!snapshot.empty) {
+                        const studentData = snapshot.docs[0].data();
+                        if (studentData.password === password) {
+                            localStorage.setItem('currentUser', JSON.stringify({
+                                studentId: studentData.studentId,
+                                name: studentData.name,
+                                role: 'student',
+                                email: studentData.email
+                            }));
+                            window.location.href = 'student.html';
+                            return;
+                        } else {
+                            errorMsg.textContent = 'Invalid password for Student ID';
+                            loginBtn.disabled = false;
+                            loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+                            return;
+                        }
+                    } else {
+                        errorMsg.textContent = 'Student ID not found';
+                        loginBtn.disabled = false;
+                        loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+                        return;
+                    }
+                }
+                
+                errorMsg.textContent = 'Invalid ID format. Use STU001, TCH001, or email for admin';
+                
+            } catch (error) {
+                console.error(error);
+                errorMsg.textContent = 'Login failed: ' + error.message;
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+            }
+        });
+    </script>
+</body>
+</html>

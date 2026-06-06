@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Dashboard - Springfield Academy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: #f0f2f5; }
+    .dashboard-container { display: flex; min-height: 100vh; }
+    
+    /* Sidebar */
+    .sidebar { width: 280px; background: linear-gradient(180deg, #0f0c29, #1a1a3e, #24243e); color: white; padding: 30px 20px; position: fixed; height: 100vh; overflow-y: auto; }
+    .logo-icon { font-size: 3rem; text-align: center; margin-bottom: 10px; }
+    .sidebar-header h2 { text-align: center; font-size: 1.3rem; margin-bottom: 30px; }
+    .sidebar-header h2 span { font-weight: 400; font-size: 0.8rem; opacity: 0.7; }
+    
+    /* Teacher Profile in Sidebar */
+    .teacher-info { text-align: center; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 15px; margin-bottom: 30px; }
+    .teacher-avatar { width: 80px; height: 80px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; font-size: 2rem; }
+    .teacher-info h4 { font-size: 1.1rem; margin-bottom: 5px; }
+    .teacher-info p { font-size: 0.75rem; opacity: 0.7; margin-bottom: 3px; }
+    
+    /* Navigation */
+    .sidebar-nav a { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: rgba(255,255,255,0.8); text-decoration: none; border-radius: 12px; cursor: pointer; margin-bottom: 8px; }
+    .sidebar-nav a:hover, .sidebar-nav a.active { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+    .sidebar-footer { margin-top: 40px; }
+    .logout-btn-sidebar { width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: rgba(239,68,68,0.2); border: none; border-radius: 12px; color: #fca5a5; cursor: pointer; }
+    
+    /* Main Content */
+    .main-content { flex: 1; margin-left: 280px; padding: 30px 40px; overflow-y: auto; height: 100vh; }
+    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+    .welcome-section h1 { font-size: 1.8rem; font-weight: 700; }
+    .welcome-section p { color: #666; font-size: 0.85rem; margin-top: 5px; }
+    .profile-avatar { width: 50px; height: 50px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: white; }
+    
+    /* Stats Cards */
+    .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; margin-bottom: 30px; }
+    .stat-card { background: white; padding: 25px; border-radius: 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: transform 0.3s; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+    .stat-card:hover { transform: translateY(-5px); }
+    .stat-info h3 { font-size: 0.85rem; color: #666; margin-bottom: 8px; }
+    .stat-number { font-size: 2rem; font-weight: 800; }
+    .stat-icon { width: 55px; height: 55px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+    
+    /* Cards */
+    .modern-card, .recent-section { background: white; border-radius: 20px; padding: 25px; margin-bottom: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #f0f2f5; }
+    .card-header h3 { font-size: 1.1rem; font-weight: 600; }
+    .view-all-btn { background: none; border: none; color: #667eea; cursor: pointer; font-weight: 500; }
+    
+    /* Course Cards */
+    .courses-preview { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+    .course-card { display: flex; align-items: center; gap: 16px; padding: 20px; background: #f8f9fc; border-radius: 16px; transition: all 0.3s; }
+    .course-card:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+    .course-icon { font-size: 2rem; }
+    .course-info h4 { font-weight: 700; color: #667eea; margin-bottom: 4px; }
+    .course-info p { font-size: 0.875rem; color: #666; }
+    
+    .courses-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px; }
+    .course-detailed-card { background: #f8f9fc; border-radius: 16px; padding: 20px; transition: all 0.3s; }
+    .course-detailed-card:hover { box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+    .course-code { font-weight: 700; color: #667eea; font-size: 0.875rem; margin-bottom: 10px; }
+    
+    /* Tables */
+    .table-responsive { overflow-x: auto; }
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th, .data-table td { padding: 12px; text-align: left; border-bottom: 1px solid #eef2f7; }
+    .data-table th { background: #f8f9fc; font-weight: 600; font-size: 0.85rem; }
+    .data-table td { font-size: 0.85rem; }
+    
+    /* Forms */
+    .form-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 15px; }
+    .input-field { margin-bottom: 15px; }
+    .input-field label { display: block; margin-bottom: 5px; font-weight: 500; font-size: 0.85rem; }
+    .input-field input, .input-field select { width: 100%; padding: 10px; border: 2px solid #eef2f7; border-radius: 10px; font-family: inherit; }
+    .search-input { padding: 8px; border-radius: 8px; border: 1px solid #ddd; width: 250px; }
+    
+    /* Buttons */
+    .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; }
+    .btn-danger { background: #ef4444; color: white; border: none; padding: 5px 12px; border-radius: 6px; cursor: pointer; }
+    
+    /* Attendance */
+    .attendance-btn { padding: 6px 12px; margin: 0 4px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.75rem; }
+    .btn-present { background: #10b981; color: white; }
+    .btn-absent { background: #ef4444; color: white; }
+    .present { color: #10b981; font-weight: 700; }
+    .absent { color: #ef4444; font-weight: 700; }
+    
+    @media (max-width: 768px) { 
+        .stats-row { grid-template-columns: 1fr; } 
+        .form-row { grid-template-columns: 1fr; }
+    }
+</style>
+</head>
+<body>
+    <button class="hamburger-btn" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Top-Right Logout Button (always visible) -->
+    <button class="top-logout" onclick="logout()">
+        <i class="fas fa-sign-out-alt"></i> Logout
+    </button>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" onclick="closeSidebar()"></div>
+
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
+                <h2>Springfield Academy</h2>
+                <p style="text-align: center; font-size: 0.7rem; opacity: 0.7; margin-top: 5px;">EST. 2025</p>
+            </div>
+            <div class="teacher-info">
+                <div class="teacher-avatar"><i class="fas fa-person-chalkboard"></i></div>
+                <h4 id="teacherName">Loading...</h4>
+                <p id="teacherDept">Department</p>
+                <p id="teacherId">ID: ---</p>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" onclick="window.showSection('dashboard')" class="nav-item ">
+                    <i class="fas fa-home"></i><span>Dashboard</span>
+                </a>
+                <a href="#" onclick="window.showSection('courses')" class="nav-item">
+                    <i class="fas fa-book-open"></i><span>My Courses</span>
+                </a>
+                <a href="#" onclick="window.showSection('students')" class="nav-item">
+                    <i class="fas fa-users"></i><span>Students</span>
+                </a>
+                <a href="#" onclick="window.showSection('attendance')" class="nav-item">
+                    <i class="fas fa-calendar-check"></i><span>Attendance</span>
+                </a>
+                <a href="#" onclick="window.showSection('marks')" class="nav-item">
+                    <i class="fas fa-chart-line"></i><span>Marks</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <button onclick="window.logout()" class="logout-btn-sidebar">
+                    <i class="fas fa-sign-out-alt"></i><span>Logout</span>
+                </button>
+            </div>
+        </aside>
+        
+        <main class="main-content">
+            <div class="top-bar">
+                <div class="welcome-section">
+                    <h1 id="pageTitle">Dashboard</h1>
+                    <p>Welcome, <span id="greetingName"></span>!</p>
+                </div>
+                <div class="profile-avatar" id="profileAvatar"><i class="fas fa-person-chalkboard"></i></div>
+            </div>
+            
+            <!-- Dashboard Section -->
+            <div id="dashboardSection">
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                            <i class="fas fa-chalkboard"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>My Courses</h3>
+                            <p class="stat-number" id="totalCourses">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb, #f5576c);">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Total Students</h3>
+                            <p class="stat-number" id="totalStudents">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Avg Attendance</h3>
+                            <p class="stat-number" id="avgAttendance">0%</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="recent-section">
+                    <div class="section-header">
+                        <h3><i class="fas fa-book"></i> My Courses</h3>
+                        <button onclick="window.showSection('courses')" class="view-all-btn">View All →</button>
+                    </div>
+                    <div id="coursesPreview" class="courses-preview"></div>
+                </div>
+            </div>
+            
+            <!-- Courses Section -->
+            <div id="coursesSection" style="display: none;">
+                <div class="modern-card">
+                    <div class="card-header">
+                        <i class="fas fa-book-open"></i>
+                        <h3>My Assigned Courses</h3>
+                    </div>
+                    <div id="coursesList" class="courses-grid"></div>
+                </div>
+            </div>
+            
+            <!-- Students Section -->
+            <div id="studentsSection" style="display: none;">
+                <div class="modern-card">
+                    <div class="card-header">
+                        <i class="fas fa-users"></i>
+                        <h3>Students Enrolled</h3>
+                        <select id="courseFilter" onchange="window.loadStudentsList()" class="search-input">
+                            <option value="">All Courses</option>
+                        </select>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr><th>ID</th><th>Name</th><th>Father Name</th><th>Course</th><th>Marks</th><th>Attendance</th><th>Actions</th></tr>
+                            </thead>
+                            <tbody id="studentsTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Attendance Section -->
+            <div id="attendanceSection" style="display: none;">
+                <div class="modern-card">
+                    <div class="card-header">
+                        <i class="fas fa-calendar-check"></i>
+                        <h3>Mark Attendance</h3>
+                    </div>
+                    <div class="form-row">
+                        <div class="input-field">
+                            <label>Select Course</label>
+                            <select id="attendanceCourse" onchange="window.loadAttendanceList()">
+                                <option value="">Choose Course</option>
+                            </select>
+                        </div>
+                        <div class="input-field">
+                            <label>Date</label>
+                            <input type="date" id="attendanceDate" value="">
+                        </div>
+                    </div>
+                    <div id="attendanceList"></div>
+                    <button onclick="window.saveAttendance()" class="btn-primary" style="margin-top: 20px;">
+                        <i class="fas fa-save"></i> Save Attendance
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Marks Section -->
+            <div id="marksSection" style="display: none;">
+                <div class="modern-card">
+                    <div class="card-header">
+                        <i class="fas fa-edit"></i>
+                        <h3>Manage Marks</h3>
+                    </div>
+                    <div class="input-field">
+                        <label>Select Course</label>
+                        <select id="marksCourse" onchange="window.loadMarksList()">
+                            <option value="">Choose Course</option>
+                        </select>
+                    </div>
+                    <div id="marksList"></div>
+                    <button onclick="window.saveMarks()" class="btn-primary" style="margin-top: 20px;">
+                        <i class="fas fa-save"></i> Save Marks
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script type="module">
+        // Get DOM elements
+        const sidebar = document.querySelector('.sidebar');
+        const sidebarOverlay = document.querySelector('.sidebar-overlay');
+        const hamburgerBtn = document.querySelector('.hamburger-btn');
+
+        // Check if mobile screen
+        function isMobile() {
+            return window.innerWidth <= 768;
+        }
+
+        // Open sidebar
+        function openSidebar() {
+            if (!sidebar) return;
+            sidebar.classList.add('open');
+            if (sidebarOverlay) {
+                sidebarOverlay.style.display = 'block';
+            }
+            // Prevent body scroll when sidebar is open
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Close sidebar
+        function closeSidebar() {
+            if (!sidebar) return;
+            sidebar.classList.remove('open');
+            if (sidebarOverlay) {
+                sidebarOverlay.style.display = 'none';
+            }
+            // Restore body scroll
+            document.body.style.overflow = '';
+        }
+
+        // Toggle sidebar
+        function toggleSidebar() {
+            if (!sidebar) return;
+            if (sidebar.classList.contains('open')) {
+                closeSidebar();
+            } else {
+                openSidebar();
+            }
+        }
+
+        // Close sidebar on link click (mobile only)
+        function setupMobileNavLinks() {
+    const navLinks = document.querySelectorAll('.nav-link');
+    navLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            if (isMobile()) {
+                setTimeout(() => {
+                    closeSidebar();
+                }, 50);
+            }
+        });
+    });
+}
+        
+        // Handle window resize
+        function handleResize() {
+            if (!isMobile()) {
+                // On desktop: ensure sidebar is visible and overlay is hidden
+                if (sidebar) {
+                    sidebar.classList.remove('open');
+                }
+                if (sidebarOverlay) {
+                    sidebarOverlay.style.display = 'none';
+                }
+                document.body.style.overflow = '';
+            } else {
+                // On mobile: ensure sidebar is closed when resizing from desktop to mobile
+                if (sidebar && !sidebar.classList.contains('open')) {
+                    // Sidebar is closed, do nothing
+                }
+            }
+        }
+
+        // Close sidebar when pressing Escape key
+        function handleEscapeKey(e) {
+            if (e.key === 'Escape' && isMobile() && sidebar && sidebar.classList.contains('open')) {
+                closeSidebar();
+            }
+        }
+
+        // Initialize all hamburger functionality
+        function initHamburgerMenu() {
+            // Close sidebar by default on mobile
+            if (isMobile() && sidebar) {
+                sidebar.classList.remove('open');
+            }
+            
+            // Setup event listeners
+            if (hamburgerBtn) {
+                hamburgerBtn.addEventListener('click', toggleSidebar);
+            }
+            
+            if (sidebarOverlay) {
+                sidebarOverlay.addEventListener('click', closeSidebar);
+            }
+            
+            // Setup navigation links
+            setupMobileNavLinks();
+            
+            // Setup resize listener
+            window.addEventListener('resize', handleResize);
+            
+            // Setup escape key listener
+            document.addEventListener('keydown', handleEscapeKey);
+        }
+
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', initHamburgerMenu);
+
+
+        import { auth, db, collection, getDocs, query, where, doc, getDoc, setDoc, updateDoc } from './firebase-config.js';
+       
+        let teacherData = null;
+        let allCourses = [];
+        let allStudents = [];
+        let allMarks = [];
+        let allAttendance = [];
+        let tempAttendance = [];
+        
+        const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+        if (currentUser.role !== 'teacher') window.location.href = 'index.html';
+        
+        async function loadTeacherData() {
+            const teachersRef = collection(db, 'teachers');
+            const q = query(teachersRef, where('teacherId', '==', currentUser.teacherId));
+            const snapshot = await getDocs(q);
+            if (!snapshot.empty) teacherData = snapshot.docs[0].data();
+            
+            document.getElementById('teacherName').textContent = teacherData?.name || currentUser.name;
+            document.getElementById('teacherDept').textContent = teacherData?.department || 'Faculty';
+            document.getElementById('teacherId').textContent = `ID: ${currentUser.teacherId}`;
+            document.getElementById('greetingName').textContent = (teacherData?.name || currentUser.name).split(' ')[0];
+            
+            await Promise.all([
+                loadCourses(),
+                loadStudentsData(),
+                loadMarksData(),
+                loadAttendanceData()
+            ]);
+            
+            updateDashboard();
+        }
+        
+        async function loadCourses() {
+            const coursesRef = collection(db, 'courses');
+            const snapshot = await getDocs(coursesRef);
+            allCourses = [];
+            snapshot.forEach(doc => allCourses.push({ id: parseInt(doc.id), ...doc.data() }));
+            
+            const myCourses = allCourses.filter(c => c.teacherId === currentUser.teacherId);
+            document.getElementById('totalCourses').textContent = myCourses.length;
+            
+            const previewHtml = myCourses.map(c => `
+                <div class="course-card">
+                    <div class="course-icon">📚</div>
+                    <div class="course-info">
+                        <h4>${c.code}</h4>
+                        <p>${c.name}</p>
+                    </div>
+                </div>
+            `).join('');
+            document.getElementById('coursesPreview').innerHTML = previewHtml || '<p>No courses assigned</p>';
+            
+            const fullHtml = myCourses.map(c => `
+                <div class="course-detailed-card">
+                    <div class="course-header">
+                        <div class="course-code">${c.code}</div>
+                    </div>
+                    <h3>${c.name}</h3>
+                    <p>${c.description || 'No description'}</p>
+                </div>
+            `).join('');
+            document.getElementById('coursesList').innerHTML = fullHtml || '<p>No courses assigned</p>';
+            
+            const courseOptions = myCourses.map(c => `<option value="${c.id}">${c.code} - ${c.name}</option>`).join('');
+            document.getElementById('courseFilter').innerHTML = '<option value="">All Courses</option>' + courseOptions;
+            document.getElementById('attendanceCourse').innerHTML = '<option value="">Choose Course</option>' + courseOptions;
+            document.getElementById('marksCourse').innerHTML = '<option value="">Choose Course</option>' + courseOptions;
+            
+            document.getElementById('attendanceDate').value = new Date().toISOString().split('T')[0];
+        }
+        
+        async function loadStudentsData() {
+            const studentsRef = collection(db, 'students');
+            const snapshot = await getDocs(studentsRef);
+            allStudents = [];
+            snapshot.forEach(doc => allStudents.push(doc.data()));
+        }
+        
+        async function loadMarksData() {
+            const marksRef = collection(db, 'marks');
+            const snapshot = await getDocs(marksRef);
+            allMarks = [];
+            snapshot.forEach(doc => allMarks.push(doc.data()));
+        }
+        
+        async function loadAttendanceData() {
+            const attendanceRef = collection(db, 'attendance');
+            const snapshot = await getDocs(attendanceRef);
+            allAttendance = [];
+            snapshot.forEach(doc => allAttendance.push(doc.data()));
+        }
+        
+        function updateDashboard() {
+            const myCourses = allCourses.filter(c => c.teacherId === currentUser.teacherId);
+            let uniqueStudents = new Set();
+            myCourses.forEach(course => {
+                allStudents.forEach(student => {
+                    if (student.enrolledCourses?.includes(course.id)) uniqueStudents.add(student.studentId);
+                });
+            });
+            document.getElementById('totalStudents').textContent = uniqueStudents.size;
+            
+            let totalPercent = 0, count = 0;
+            myCourses.forEach(course => {
+                allStudents.forEach(student => {
+                    if (student.enrolledCourses?.includes(course.id)) {
+                        const studentAttendance = allAttendance.filter(a => a.studentId === student.studentId && a.courseId === course.id);
+                        if (studentAttendance.length) {
+                            const present = studentAttendance.filter(a => a.status === 'present').length;
+                            totalPercent += (present / studentAttendance.length) * 100;
+                            count++;
+                        }
+                    }
+                });
+            });
+            document.getElementById('avgAttendance').textContent = count ? Math.round(totalPercent / count) + '%' : '0%';
+        }
+        
+        window.loadStudentsList = function() {
+            const filterCourseId = document.getElementById('courseFilter').value;
+            const myCourses = allCourses.filter(c => c.teacherId === currentUser.teacherId);
+            
+            let studentList = [];
+            myCourses.forEach(course => {
+                if (!filterCourseId || course.id == filterCourseId) {
+                    allStudents.forEach(student => {
+                        if (student.enrolledCourses?.includes(course.id)) {
+                            const marks = allMarks.find(m => m.studentId === student.studentId && m.courseId === course.id);
+                            const attendanceRecords = allAttendance.filter(a => a.studentId === student.studentId && a.courseId === course.id);
+                            const presentCount = attendanceRecords.filter(a => a.status === 'present').length;
+                            const attendancePercent = attendanceRecords.length ? Math.round((presentCount / attendanceRecords.length) * 100) : 0;
+                            
+                            studentList.push({
+                                ...student,
+                                courseName: course.name,
+                                marks: marks?.marks || '-',
+                                attendance: attendancePercent
+                            });
+                        }
+                    });
+                }
+            });
+            
+            studentList = studentList.filter((s, i, arr) => arr.findIndex(x => x.studentId === s.studentId) === i);
+            
+            const tableHtml = studentList.map(s => `
+                <tr>
+                    <td>${s.studentId}</td>
+                    <td>${s.name}</td>
+                    <td>${s.fatherName || '-'}</td>
+                    <td>${s.courseName}</td>
+                    <td>${s.marks}</td>
+                    <td><span class="${s.attendance >= 75 ? 'present' : 'absent'}">${s.attendance}%</span></td>
+                    <td>
+                        <button class="btn-primary" style="padding: 4px 8px; font-size: 0.7rem;" onclick="window.quickAttendance('${s.studentId}')">
+                            <i class="fas fa-calendar-check"></i>
+                        </button>
+                        <button class="btn-primary" style="padding: 4px 8px; font-size: 0.7rem; background: #f59e0b;" onclick="window.quickMarks('${s.studentId}')">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+            document.getElementById('studentsTable').innerHTML = tableHtml || '<tr><td colspan="7">No students enrolled</td></tr>';
+        };
+        
+        window.loadAttendanceList = function() {
+            const courseId = document.getElementById('attendanceCourse').value;
+            const date = document.getElementById('attendanceDate').value;
+            if (!courseId) return;
+            
+            const students = allStudents.filter(s => s.enrolledCourses?.includes(parseInt(courseId)));
+            tempAttendance = [];
+            
+            const listHtml = `
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead><tr><th>Student</th><th>Status</th></thead>
+                        <tbody>
+                            ${students.map(s => {
+                                const existing = allAttendance.find(a => a.studentId === s.studentId && a.courseId == courseId && a.date === date);
+                                const status = existing?.status || 'present';
+                                tempAttendance.push({ studentId: s.studentId, courseId: parseInt(courseId), date, status });
+                                return `
+                                    <tr>
+                                        <td>${s.name} (${s.studentId})</td>
+                                        <td>
+                                            <button onclick="window.setAttendanceStatus('${s.studentId}', 'present', ${courseId})" 
+                                                class="attendance-btn btn-present" style="${status === 'present' ? 'opacity:1' : 'opacity:0.5'}">
+                                                ✅ Present
+                                            </button>
+                                            <button onclick="window.setAttendanceStatus('${s.studentId}', 'absent', ${courseId})" 
+                                                class="attendance-btn btn-absent" style="${status === 'absent' ? 'opacity:1' : 'opacity:0.5'}">
+                                                ❌ Absent
+                                            </button>
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            document.getElementById('attendanceList').innerHTML = listHtml;
+        };
+        
+        window.setAttendanceStatus = function(studentId, status, courseId) {
+            const date = document.getElementById('attendanceDate').value;
+            const index = tempAttendance.findIndex(a => a.studentId === studentId && a.courseId === courseId && a.date === date);
+            if (index !== -1) tempAttendance[index].status = status;
+            
+            const btns = event.target.parentElement.querySelectorAll('button');
+            btns.forEach(btn => btn.style.opacity = '0.5');
+            event.target.style.opacity = '1';
+        };
+        
+        window.saveAttendance = async function() {
+    const courseId = document.getElementById('attendanceCourse').value;
+    if (!courseId) { alert('Select course'); return; }
+    
+    const date = document.getElementById('attendanceDate').value;
+    const records = tempAttendance.filter(a => a.courseId == courseId && a.date === date);
+    
+    for (const record of records) {
+        const docRef = doc(db, 'attendance', `${record.studentId}_${record.courseId}_${record.date}`);
+        await setDoc(docRef, record);  // ← Make sure this is setDoc, not addDoc
+    }
+    alert(`Saved ${records.length} attendance records`);
+    await loadAttendanceData();
+    window.loadAttendanceList();
+    updateDashboard();
+};
+        
+        window.loadMarksList = function() {
+            const courseId = document.getElementById('marksCourse').value;
+            if (!courseId) return;
+            
+            const students = allStudents.filter(s => s.enrolledCourses?.includes(parseInt(courseId)));
+            
+            const listHtml = `
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead><tr><th>Student</th><th>Marks (0-100)</th></thead>
+                        <tbody>
+                            ${students.map(s => {
+                                const existing = allMarks.find(m => m.studentId === s.studentId && m.courseId == courseId);
+                                return `
+                                    <tr>
+                                        <td>${s.name} (${s.studentId})</td>
+                                        <td>
+                                            <input type="number" id="mark_${s.studentId}" value="${existing?.marks || ''}" 
+                                                min="0" max="100" style="width: 80px; padding: 8px; border-radius: 8px;">
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            document.getElementById('marksList').innerHTML = listHtml;
+        };
+        
+        window.saveMarks = async function() {
+    const courseId = document.getElementById('marksCourse').value;
+    if (!courseId) { alert('Select course'); return; }
+    
+    const students = allStudents.filter(s => s.enrolledCourses?.includes(parseInt(courseId)));
+    let saved = 0;
+    
+    for (const student of students) {
+        const markValue = document.getElementById(`mark_${student.studentId}`)?.value;
+        if (markValue !== undefined && markValue !== '') {
+            const docRef = doc(db, 'marks', `${student.studentId}_${courseId}`);
+            await setDoc(docRef, {  // ← Make sure this is setDoc
+                studentId: student.studentId,
+                courseId: parseInt(courseId),
+                marks: parseInt(markValue)
+            });
+            saved++;
+        }
+    }
+    alert(`Saved marks for ${saved} students`);
+    await loadMarksData();
+    if (document.getElementById('courseFilter').value) window.loadStudentsList();
+};
+        
+        window.quickAttendance = function(studentId) {
+            window.showSection('attendance');
+            document.getElementById('attendanceCourse').scrollIntoView();
+            alert(`Select a course and date to mark attendance for ${studentId}`);
+        };
+        
+        window.quickMarks = function(studentId) {
+            window.showSection('marks');
+            document.getElementById('marksCourse').scrollIntoView();
+            alert(`Select a course to edit marks for ${studentId}`);
+        };
+        
+        window.showSection = function(section) {
+    document.getElementById('dashboardSection').style.display = 'none';
+    document.getElementById('coursesSection').style.display = 'none';
+    document.getElementById('studentsSection').style.display = 'none';
+    document.getElementById('attendanceSection').style.display = 'none';
+    document.getElementById('marksSection').style.display = 'none';
+    document.getElementById(`${section}Section`).style.display = 'block';
+    
+    const titles = { dashboard: 'Dashboard', courses: 'My Courses', students: 'Students', attendance: 'Attendance', marks: 'Marks' };
+    document.getElementById('pageTitle').textContent = titles[section];
+    
+    if (section === 'students') window.loadStudentsList();
+    if (section === 'attendance') window.loadAttendanceList();
+    if (section === 'marks') window.loadMarksList();
+    
+    // ADD THIS LINE - Close sidebar on mobile after navigation
+    if (window.innerWidth <= 768 && typeof closeSidebar === 'function') {
+        setTimeout(() => closeSidebar(), 50);
+    }
+};
+        
+        window.logout = function() {
+            localStorage.removeItem('currentUser');
+            window.location.href = 'index.html';
+        };
+        
+        await loadTeacherData();
+        window.showSection('dashboard');
+    </script>
+</body>
+</html>
